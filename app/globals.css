@@ -2,26 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer components {
+  .message li {
+    @apply my-1;
   }
-}
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  .message ol li {
+    @apply list-item list-decimal;
+  }
+
+  .message ul li {
+    @apply list-disc;
+  }
+
+  .message ol,
+  .message ul {
+    @apply pl-6 my-2 list-outside;
+  }
+
+  .message p {
+    @apply my-3;
+  }
+
+  .message ol p,
+  .message ul p {
+    @apply inline;
+  }
 }
