@@ -10,7 +10,6 @@ interface Message {
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
-  const [indexedDocs, setIndexedDocs] = useState<string[]>([]);
   const [history, setHistory] = useState<Message[]>([]);
   const [sessionId, setSessionId] = useState<any>();
   const historyRef = useRef<Message[]>([]);
@@ -21,23 +20,13 @@ export default function Home() {
     setHistory([...historyRef.current, message]);
   }
 
-  // async function createIndexAndEmbeddings() {
-  //   try {
-  //     const result = await fetch(process.env.PROMPT_ENDPOINT as string, {
-  //       method: "POST",
-  //     });
-  //     const json = await result.json();
-  //     console.log("result: ", json);
-  //   } catch (err) {
-  //     console.log("err:", err);
-  //   }
-  // }
-
   async function sendQuery(ev) {
     ev.preventDefault();
     const queryEl = ev.target.query;
     const query = queryEl.value;
+
     if (!query) return;
+
     pushHistory({ origin: "USER", text: query });
     setLoading(true);
     queryEl.value = "";
@@ -51,29 +40,20 @@ export default function Home() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            query,
-            sessionId,
+            prompt: query,
+            session: String(sessionId),
           }),
         }
       );
       const json = await result.json();
+
       console.log(json);
+
       pushHistory({
         origin: "AI",
         text: json.output,
-        intermediateSteps: json.intermediateSteps.map((intermediateStep) => {
-          const getObservation = () => {
-            try {
-              return JSON.parse(intermediateStep.observation);
-            } catch (err) {
-              return intermediateStep.observation;
-            }
-          };
-
-          return {
-            ...intermediateStep,
-            observation: getObservation(),
-          };
+        intermediateSteps: json.intermediate_steps.map((intermediateStep) => {
+          return intermediateStep;
         }),
       });
       setLoading(false);
@@ -84,16 +64,7 @@ export default function Home() {
     }
   }
 
-  async function fetchIndexedDocs() {
-    const result = await fetch("/api/indexed-documents", {
-      method: "GET",
-    });
-    const json = await result.json();
-    setIndexedDocs(json.data);
-  }
-
   useEffect(() => {
-    fetchIndexedDocs();
     setSessionId(Date.now());
   }, []);
 
@@ -149,30 +120,6 @@ export default function Home() {
           </button>
         </form>
       </section>
-      <section className="w-full max-w-[700px] px-2 pt-6 pb-12">
-        <details className="">
-          <summary>Indexed documents</summary>
-          <ol className="space-y-2 list-decimal list-inside text-sm mt-4">
-            {indexedDocs.map((indexedDoc) => (
-              <li key={indexedDoc}>
-                <a
-                  href={`/documents/${indexedDoc}`}
-                  target="_blank"
-                  className="text-primary hover:underline"
-                >
-                  {indexedDoc}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </details>
-      </section>
-
-      {/* {result && <p>{result}</p>} */}
-      {/* consider removing this button from the UI once the embeddings are created ... */}
-      {/* <button onClick={createIndexAndEmbeddings}>
-        Create index and embeddings
-      </button> */}
     </main>
   );
 }
